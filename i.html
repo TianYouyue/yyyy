@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生成绩单批量生成系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #4a6fa5;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+        }
+
+        header i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        h2 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        .upload-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .upload-box {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px dashed #3498db;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .upload-box:hover {
+            border-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-box h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .upload-box input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .optional-tag {
+            background: #f39c12;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .config-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .config-item {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .config-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .config-item select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .config-item select[multiple] {
+            height: 150px;
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .checkbox-group {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: white;
+        }
+
+        .checkbox-item {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-item input {
+            margin-right: 8px;
+        }
+
+        .preview-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, #1c5a7a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .student-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .student-selector select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            min-width: 250px;
+        }
+
+        #studentCount {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: auto;
+            background: white;
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        /* 成绩单样式 - 自适应布局 */
+        .score-card {
+            background: white;
+            padding: 40px 50px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            min-height: auto;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .score-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px double #2c3e50;
+        }
+
+        .score-title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            letter-spacing: 5px;
+        }
+
+        .student-info {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        .score-table th {
+            background: #3498db;
+            color: white;
+            padding: 14px 10px;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid #2980b9;
+        }
+
+        .score-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .score-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .score-table tr:hover {
+            background: #e3f2fd;
+        }
+
+        /* 评语区域样式 */
+        .remark-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #f39c12;
+            display: none; /* 默认隐藏 */
+        }
+
+        .remark-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .remark-section h3 i {
+            color: #f39c12;
+            margin-right: 10px;
+        }
+
+        .remark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .remark-item {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .remark-subject {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .remark-content {
+            color: #555;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .no-remark {
+            color: #7f8c8d;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .progress-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .upload-group, .config-row {
+                flex-direction: column;
+            }
+            
+            .upload-box, .config-item {
+                min-width: 100%;
+            }
+            
+            .preview-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .score-card {
+                padding: 20px;
+                transform: none;
+            }
+            
+            .score-title {
+                font-size: 1.8rem;
+            }
+            
+            .student-info {
+                font-size: 1rem;
+            }
+            
+            .score-table {
+                font-size: 0.9rem;
+            }
+            
+            .remark-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            .score-card {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-graduation-cap"></i> 学生成绩单批量生成系统</h1>
+        </header>
+
+        <!-- 文件上传区域 -->
+        <section class="upload-section">
+            <h2><i class="fas fa-upload"></i> 第一步：上传文件</h2>
+            <div class="upload-group">
+                <div class="upload-box">
+                    <h3>成绩数据文件 (Excel)</h3>
+                    <input type="file" id="scoreFile" accept=".xlsx,.xls">
+                    <p class="upload-hint">必传：上传"chengjibiao.xlsx"格式的成绩表</p>
+                </div>
+                <div class="upload-box">
+                    <h3>配置文件 (Excel)</h3>
+                    <input type="file" id="configFile" accept=".xlsx,.xls">
+                    <p class="upload-hint">必传：上传"setting.xlsx"格式的配置文件</p>
+                </div>
+                <div class="upload-box">
+                    <h3>老师评语文件 (Excel) <span class="optional-tag">可选</span></h3>
+                    <input type="file" id="remarkFile" accept=".xlsx,.xls">
+                    <p class="upload-hint">可选：上传"remark.xlsx"格式的评语表</p>
+                </div>
+            </div>
+            <div id="fileStatus" class="status"></div>
+        </section>
+
+        <!-- 配置选择区域 -->
+        <section class="config-section" style="display: none;">
+            <h2><i class="fas fa-cog"></i> 第二步：配置参数</h2>
+            
+            <div class="config-row">
+                <div class="config-item">
+                    <label><i class="fas fa-graduation-cap"></i> 选择年级：</label>
+                    <select id="gradeSelect" multiple>
+                        <option value="all">全部年级</option>
+                    </select>
+                    <p class="hint">可多选，按住Ctrl选择多个</p>
+                </div>
+                
+                <div class="config-item">
+                    <label><i class="fas fa-users"></i> 选择班级：</label>
+                    <select id="classSelect" multiple>
+                        <option value="all">全部班级</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-row">
+                <div class="config-item">
+                    <label><i class="fas fa-calendar-alt"></i> 选择考次：</label>
+                    <div id="examCheckboxes" class="checkbox-group"></div>
+                </div>
+                
+                <div class="config-item">
+                    <label><i class="fas fa-book"></i> 选择科目：</label>
+                    <div id="subjectCheckboxes" class="checkbox-group"></div>
+                </div>
+            </div>
+
+            <div class="preview-controls">
+                <button id="previewBtn" class="btn"><i class="fas fa-eye"></i> 预览成绩单</button>
+                <button id="generateBtn" class="btn btn-primary"><i class="fas fa-magic"></i> 批量生成成绩单</button>
+            </div>
+        </section>
+
+        <!-- 预览区域 -->
+        <section class="preview-section" style="display: none;">
+            <h2><i class="fas fa-search"></i> 第三步：预览与生成</h2>
+            <div class="preview-controls">
+                <div class="student-selector">
+                    <label>选择学生：</label>
+                    <select id="studentSelect"></select>
+                    <span id="studentCount">共0名学生</span>
+                </div>
+                <button id="downloadSingleBtn" class="btn"><i class="fas fa-download"></i> 下载此成绩单</button>
+            </div>
+            
+            <div id="previewContainer" class="preview-container">
+                <!-- 成绩单预览将在这里显示 -->
+            </div>
+            
+            <div id="batchProgress" class="progress-section" style="display: none;">
+                <h3><i class="fas fa-sync-alt fa-spin"></i> 正在批量生成成绩单...</h3>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <p id="progressText">准备中...</p>
+                <button id="cancelBtn" class="btn btn-danger"><i class="fas fa-times"></i> 取消</button>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2023 成绩单生成系统 | 自适应布局 | 支持评语导入</p>
+        </footer>
+    </div>
+
+    <!-- 引入必要的JavaScript库 -->
+    <script src="lib/xlsx.full.min.js"></script>
+    <script src="lib/html2canvas.min.js"></script>
+    <script src="lib/FileSaver.min.js"></script>
+    <script src="lib/jszip.min.js"></script>
+    
+    <script>
+        // 全局变量
+        let scoreData = [];          // 成绩数据
+        let configData = {};         // 配置数据
+        let remarkData = {};         // 评语数据 {学号: {科目: 评语}}
+        let selectedStudents = [];   // 筛选后的学生列表
+        let currentPreviewStudent = null; // 当前预览的学生
+        let isGenerating = false;
+        let cancelGeneration = false;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 绑定事件
+            document.getElementById('scoreFile').addEventListener('change', handleScoreFile);
+            document.getElementById('configFile').addEventListener('change', handleConfigFile);
+            document.getElementById('remarkFile').addEventListener('change', handleRemarkFile);
+            document.getElementById('previewBtn').addEventListener('click', previewScoreCard);
+            document.getElementById('generateBtn').addEventListener('click', batchGenerate);
+            document.getElementById('studentSelect').addEventListener('change', changePreviewStudent);
+            document.getElementById('downloadSingleBtn').addEventListener('click', downloadSingleScoreCard);
+            document.getElementById('gradeSelect').addEventListener('change', updateClassOptions);
+            document.getElementById('cancelBtn').addEventListener('click', cancelBatch);
+        });
+
+        // 处理成绩文件上传
+        function handleScoreFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    scoreData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    showStatus('成绩文件加载成功！共' + scoreData.length + '条记录', 'success');
+                    checkFilesLoaded();
+                } catch (error) {
+                    showStatus('文件解析失败：' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 处理配置文件上传
+        function handleConfigFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // 读取考次表
+                    const examSheet = workbook.Sheets['考次'];
+                    configData.exams = XLSX.utils.sheet_to_json(examSheet, {header: 1})
+                        .flat()
+                        .filter(exam => exam && exam !== '考次');
+                    
+                    // 读取班级表
+                    const classSheet = workbook.Sheets['班级'];
+                    const classRows = XLSX.utils.sheet_to_json(classSheet, {header: 1});
+                    configData.classes = {};
+                    classRows.slice(1).forEach(row => {
+                        if (row[0] && row[1]) {
+                            if (!configData.classes[row[0]]) {
+                                configData.classes[row[0]] = [];
+                            }
+                            configData.classes[row[0]].push(row[1]);
+                        }
+                    });
+                    
+                    // 更新UI
+                    updateConfigUI();
+                    showStatus('配置文件加载成功！', 'success');
+                    checkFilesLoaded();
+                } catch (error) {
+                    showStatus('配置文件解析失败：' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 处理评语文件上传
+        function handleRemarkFile(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                remarkData = {};
+                showStatus('未上传评语文件，将不显示评语', 'success');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // 转换评语数据格式
+                    remarkData = {};
+                    rows.forEach(row => {
+                        const studentId = row['学号'];
+                        if (studentId) {
+                            remarkData[studentId] = {};
+                            // 遍历所有列，除了学号和可能的其他非科目列
+                            Object.keys(row).forEach(key => {
+                                if (key !== '学号' && key !== '班主任' && row[key]) {
+                                    remarkData[studentId][key] = row[key];
+                                }
+                            });
+                        }
+                    });
+                    
+                    showStatus('评语文件加载成功！', 'success');
+                } catch (error) {
+                    showStatus('评语文件解析失败：' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 检查必要文件是否已加载
+        function checkFilesLoaded() {
+            if (scoreData.length > 0 && configData.exams) {
+                document.querySelector('.config-section').style.display = 'block';
+                document.querySelector('.preview-section').style.display = 'block';
+            }
+        }
+
+        // 更新配置UI
+        function updateConfigUI() {
+            // 更新年级选择
+            const gradeSelect = document.getElementById('gradeSelect');
+            gradeSelect.innerHTML = '<option value="all">全部年级</option>';
+            Object.keys(configData.classes).forEach(grade => {
+                const option = document.createElement('option');
+                option.value = grade;
+                option.textContent = grade;
+                gradeSelect.appendChild(option);
+            });
+            
+            // 更新考次选择
+            const examContainer = document.getElementById('examCheckboxes');
+            examContainer.innerHTML = '';
+            configData.exams.forEach(exam => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="exam_${exam}" value="${exam}" checked>
+                    <label for="exam_${exam}">${exam}</label>
+                `;
+                examContainer.appendChild(div);
+            });
+            
+            // 更新科目选择（从数据中提取所有科目）
+            updateSubjectOptions();
+        }
+
+        // 从数据中提取所有科目
+        function updateSubjectOptions() {
+            if (scoreData.length === 0) return;
+            
+            // 排除前6列（考次、学号、姓名、年级、班级、总分）
+            const firstRow = scoreData[0];
+            const subjectKeys = Object.keys(firstRow).slice(6);
+            
+            const subjectContainer = document.getElementById('subjectCheckboxes');
+            subjectContainer.innerHTML = '';
+            
+            subjectKeys.forEach(subject => {
+                if (subject.trim()) {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item';
+                    div.innerHTML = `
+                        <input type="checkbox" id="subject_${subject}" value="${subject}" checked>
+                        <label for="subject_${subject}">${subject}</label>
+                    `;
+                    subjectContainer.appendChild(div);
+                }
+            });
+        }
+
+        // 更新班级选项（基于选择的年级）
+        function updateClassOptions() {
+            const gradeSelect = document.getElementById('gradeSelect');
+            const classSelect = document.getElementById('classSelect');
+            const selectedGrades = Array.from(gradeSelect.selectedOptions).map(opt => opt.value);
+            
+            classSelect.innerHTML = '<option value="all">全部班级</option>';
+            
+            if (selectedGrades.includes('all') || selectedGrades.length === 0) {
+                // 显示所有班级
+                Object.values(configData.classes).flat().forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classSelect.appendChild(option);
+                });
+            } else {
+                // 只显示选中年级的班级
+                selectedGrades.forEach(grade => {
+                    if (configData.classes[grade]) {
+                        configData.classes[grade].forEach(className => {
+                            const option = document.createElement('option');
+                            option.value = className;
+                            option.textContent = className;
+                            classSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+        }
+
+        // 筛选学生
+        function filterStudents() {
+            const gradeSelect = document.getElementById('gradeSelect');
+            const classSelect = document.getElementById('classSelect');
+            
+            const selectedGrades = Array.from(gradeSelect.selectedOptions).map(opt => opt.value);
+            const selectedClasses = Array.from(classSelect.selectedOptions).map(opt => opt.value);
+            
+            // 获取唯一的学生列表
+            const studentMap = new Map();
+            scoreData.forEach(row => {
+                const studentKey = `${row.学号}|${row.姓名}|${row.年级}|${row.班级}`;
+                if (!studentMap.has(studentKey)) {
+                    studentMap.set(studentKey, {
+                        学号: row.学号,
+                        姓名: row.姓名,
+                        年级: row.年级,
+                        班级: row.班级
+                    });
+                }
+            });
+            
+            let students = Array.from(studentMap.values());
+            
+            // 按年级筛选
+            if (!selectedGrades.includes('all') && selectedGrades.length > 0) {
+                students = students.filter(student => selectedGrades.includes(student.年级));
+            }
+            
+            // 按班级筛选
+            if (!selectedClasses.includes('all') && selectedClasses.length > 0) {
+                students = students.filter(student => selectedClasses.includes(student.班级));
+            }
+            
+            selectedStudents = students;
+            updateStudentSelect();
+        }
+
+        // 更新学生选择下拉框
+        function updateStudentSelect() {
+            const studentSelect = document.getElementById('studentSelect');
+            const studentCount = document.getElementById('studentCount');
+            
+            studentSelect.innerHTML = '';
+            studentCount.textContent = `共${selectedStudents.length}名学生`;
+            
+            selectedStudents.forEach((student, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${student.班级} - ${student.姓名} (${student.学号})`;
+                studentSelect.appendChild(option);
+            });
+            
+            if (selectedStudents.length > 0) {
+                studentSelect.disabled = false;
+                currentPreviewStudent = selectedStudents[0];
+            } else {
+                studentSelect.disabled = true;
+            }
+        }
+
+        // 预览成绩单
+        function previewScoreCard() {
+            filterStudents();
+            if (selectedStudents.length === 0) {
+                showStatus('请先选择年级和班级！', 'error');
+                return;
+            }
+            
+            const studentIndex = document.getElementById('studentSelect').value || 0;
+            currentPreviewStudent = selectedStudents[studentIndex];
+            updatePreview();
+        }
+
+        // 更新预览
+        function updatePreview() {
+            if (!currentPreviewStudent) return;
+            
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+            
+            // 创建成绩单HTML
+            const scoreCard = createScoreCardHTML(currentPreviewStudent);
+            previewContainer.appendChild(scoreCard);
+        }
+
+        // 创建单个学生的成绩单HTML
+        function createScoreCardHTML(student) {
+            // 获取选中的考次和科目
+            const selectedExams = Array.from(document.querySelectorAll('#examCheckboxes input:checked'))
+                .map(cb => cb.value);
+            const selectedSubjects = Array.from(document.querySelectorAll('#subjectCheckboxes input:checked'))
+                .map(cb => cb.value);
+            
+            // 过滤该学生的成绩数据
+            const studentScores = scoreData.filter(row => 
+                row.学号 === student.学号 && 
+                selectedExams.includes(row.考次)
+            );
+            
+            // 获取该学生的评语
+            const studentRemarks = remarkData[student.学号] || {};
+            const hasRemarks = Object.keys(studentRemarks).length > 0;
+            
+            // 创建表格HTML - 动态结构
+            let tableHTML = '<table class="score-table">';
+            
+            // 表头
+            tableHTML += '<thead><tr>';
+            tableHTML += '<th>科目</th>';
+            
+            if (selectedExams.length === 1) {
+                // 单次考试：只显示一个成绩列
+                tableHTML += `<th>${selectedExams[0]}成绩</th>`;
+            } else {
+                // 多次考试：显示各考次列
+                selectedExams.forEach(exam => {
+                    tableHTML += `<th>${exam}</th>`;
+                });
+            }
+            
+            tableHTML += '</tr></thead>';
+            
+            // 表格内容
+            tableHTML += '<tbody>';
+            
+            if (selectedExams.length === 1) {
+                // 单次考试：每个科目一行
+                selectedSubjects.forEach(subject => {
+                    const scoreRow = studentScores.find(row => row.考次 === selectedExams[0]);
+                    const score = scoreRow ? (scoreRow[subject] || '') : '';
+                    
+                    tableHTML += '<tr>';
+                    tableHTML += `<td>${subject}</td>`;
+                    tableHTML += `<td>${score}</td>`;
+                    tableHTML += '</tr>';
+                });
+            } else {
+                // 多次考试：每个科目多列
+                selectedSubjects.forEach(subject => {
+                    tableHTML += '<tr>';
+                    tableHTML += `<td>${subject}</td>`;
+                    
+                    selectedExams.forEach(exam => {
+                        const scoreRow = studentScores.find(row => row.考次 === exam);
+                        const score = scoreRow ? (scoreRow[subject] || '') : '';
+                        tableHTML += `<td>${score}</td>`;
+                    });
+                    
+                    tableHTML += '</tr>';
+                });
+            }
+            
+            tableHTML += '</tbody></table>';
+            
+            // 创建评语HTML
+            let remarkHTML = '';
+            if (hasRemarks) {
+                remarkHTML = `
+                    <div class="remark-section" id="remarkSection">
+                        <h3><i class="fas fa-comment-alt"></i> 老师评语</h3>
+                        <div class="remark-grid">
+                `;
+                
+                // 只显示选中科目的评语
+                selectedSubjects.forEach(subject => {
+                    if (studentRemarks[subject]) {
+                        remarkHTML += `
+                            <div class="remark-item">
+                                <div class="remark-subject">${subject}</div>
+                                <div class="remark-content">${studentRemarks[subject]}</div>
+                            </div>
+                        `;
+                    }
+                });
+                
+                // 检查是否有显示评语
+                const hasDisplayedRemarks = selectedSubjects.some(subject => studentRemarks[subject]);
+                
+                if (hasDisplayedRemarks) {
+                    remarkHTML += '</div></div>';
+                } else {
+                    remarkHTML = ''; // 没有评语时不显示评语区域
+                }
+            }
+            
+            // 创建成绩单容器
+            const card = document.createElement('div');
+            card.className = 'score-card';
+            card.id = 'scoreCardToCapture';
+            card.innerHTML = `
+                <div class="score-header">
+                    <h1 class="score-title">成绩单</h1>
+                    <div class="student-info">
+                        <p>班级：${student.班级}</p>
+                        <p>姓名：${student.姓名}</p>
+                        <p>学号：${student.学号}</p>
+                    </div>
+                </div>
+                <div class="score-content">
+                    ${tableHTML}
+                </div>
+                ${remarkHTML}
+            `;
+            
+            return card;
+        }
+
+        // 切换预览的学生
+        function changePreviewStudent() {
+            const studentIndex = document.getElementById('studentSelect').value;
+            if (studentIndex >= 0 && studentIndex < selectedStudents.length) {
+                currentPreviewStudent = selectedStudents[studentIndex];
+                updatePreview();
+            }
+        }
+
+        // 下载单个成绩单
+        function downloadSingleScoreCard() {
+            if (!currentPreviewStudent) {
+                showStatus('请先预览成绩单！', 'error');
+                return;
+            }
+            
+            const card = document.getElementById('scoreCardToCapture');
+            if (!card) {
+                showStatus('未找到成绩单元素！', 'error');
+                return;
+            }
+            
+            html2canvas(card, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const filename = `${currentPreviewStudent.班级}-${currentPreviewStudent.姓名}-${currentPreviewStudent.学号}.png`;
+                    saveAs(blob, filename);
+                    showStatus('成绩单下载成功！', 'success');
+                });
+            }).catch(error => {
+                showStatus('生成图片失败：' + error.message, 'error');
+            });
+        }
+
+        // 批量生成成绩单
+        async function batchGenerate() {
+            if (isGenerating) {
+                showStatus('正在生成中，请稍候...', 'error');
+                return;
+            }
+            
+            filterStudents();
+            if (selectedStudents.length === 0) {
+                showStatus('没有可选的学生！', 'error');
+                return;
+            }
+            
+            isGenerating = true;
+            cancelGeneration = false;
+            
+            // 显示进度条
+            const progressSection = document.getElementById('batchProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressSection.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = '准备中...';
+            
+            const zip = new JSZip();
+            const imgFolder = zip.folder("成绩单");
+            
+            const total = selectedStudents.length;
+            let completed = 0;
+            
+            for (let i = 0; i < total; i++) {
+                if (cancelGeneration) break;
+                
+                const student = selectedStudents[i];
+                
+                // 更新进度
+                completed++;
+                const percent = Math.round((completed / total) * 100);
+                progressFill.style.width = percent + '%';
+                progressText.textContent = `正在生成：${student.班级} - ${student.姓名} (${completed}/${total})`;
+                
+                // 创建成绩单并转为图片
+                try {
+                    const card = createScoreCardHTML(student);
+                    document.body.appendChild(card);
+                    
+                    const canvas = await html2canvas(card, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff'
+                    });
+                    
+                    document.body.removeChild(card);
+                    
+                    canvas.toBlob(blob => {
+                        const filename = `${student.班级}-${student.姓名}-${student.学号}.png`;
+                        imgFolder.file(filename, blob);
+                        
+                        // 如果是最后一个，生成ZIP文件
+                        if (completed === total || cancelGeneration) {
+                            if (!cancelGeneration) {
+                                progressText.textContent = '正在打包ZIP文件...';
+                                zip.generateAsync({type: "blob"})
+                                    .then(function(content) {
+                                        saveAs(content, "学生成绩单.zip");
+                                        progressText.textContent = '批量生成完成！';
+                                        showStatus('批量生成完成，ZIP文件已下载！', 'success');
+                                        
+                                        // 延迟隐藏进度条
+                                        setTimeout(() => {
+                                            progressSection.style.display = 'none';
+                                        }, 2000);
+                                    });
+                            }
+                            isGenerating = false;
+                        }
+                    });
+                } catch (error) {
+                    console.error(`生成${student.姓名}的成绩单失败：`, error);
+                }
+                
+                // 添加延迟避免阻塞
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        // 取消批量生成
+        function cancelBatch() {
+            cancelGeneration = true;
+            document.getElementById('batchProgress').style.display = 'none';
+            showStatus('批量生成已取消', 'error');
+            isGenerating = false;
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('fileStatus');
+            statusEl.textContent = message;
+            statusEl.className = 'status ' + type;
+            
+            // 3秒后自动清除
+            setTimeout(() => {
+                statusEl.textContent = '';
+                statusEl.className = 'status';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
