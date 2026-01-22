@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>相交、平行 - 课堂交互工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.4rem;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            color: #5d7b9d;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            min-width: 600px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #d0e0f0;
+        }
+        
+        .controls-container {
+            flex: 0 0 350px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border: 1px solid #d0e0f0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 600px;
+            display: block;
+            cursor: grab;
+            touch-action: none;
+        }
+        
+        .control-panel {
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e1f0ff;
+            font-size: 1.5rem;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8fbff;
+            border-radius: 10px;
+            border: 1px solid #d5e7ff;
+        }
+        
+        .toggle-label {
+            font-weight: 600;
+            color: #3a5a8c;
+            font-size: 1.1rem;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 64px;
+            height: 34px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #4a9cff;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        .filter-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8fbff;
+            border-radius: 10px;
+            border: 1px solid #d5e7ff;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            color: #3a5a8c;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #c2dcff;
+            background-color: white;
+            color: #3a5a8c;
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .filter-select:focus {
+            border-color: #4a9cff;
+        }
+        
+        .angle-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .angle-table th {
+            background-color: #4a9cff;
+            color: white;
+            padding: 14px 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .angle-table td {
+            padding: 12px 10px;
+            text-align: center;
+            border: 1px solid #e1f0ff;
+        }
+        
+        .angle-table tr:nth-child(even) {
+            background-color: #f8fbff;
+        }
+        
+        .angle-table tr:hover {
+            background-color: #eaf4ff;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .table-header h2 {
+            margin: 0;
+        }
+        
+        .hide-angles-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .hide-angles-label {
+            font-weight: 600;
+            color: #3a5a8c;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .hide-angles-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .angle-hidden {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+        
+        .instructions {
+            background-color: #f0f9ff;
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: auto;
+            border-left: 5px solid #4a9cff;
+        }
+        
+        .instructions h3 {
+            color: #3a5a8c;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            color: #555;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .angle-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .angle-tag {
+            background-color: #eaf4ff;
+            color: #3a5a8c;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid #c2dcff;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7a9bc1;
+            font-size: 0.9rem;
+            width: 100%;
+            max-width: 1200px;
+            padding-top: 15px;
+            border-top: 1px solid #e1f0ff;
+        }
+        
+        @media (max-width: 1000px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .canvas-container, .controls-container {
+                min-width: 100%;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>相交、平行演示器</h1>
+<!--        <p class="subtitle">平行线截线形成的角度关系 - 教室白板交互工具</p>-->
+    </div>
+    
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="canvas" width="800" height="600"></canvas>
+        </div>
+        
+        <div class="controls-container">
+            <div class="control-panel">
+                <h2>控制面板</h2>
+                
+                <div class="toggle-container">
+                    <span class="toggle-label">平行线模式</span>
+                    <label class="switch">
+                        <input type="checkbox" id="parallelToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="filter-container">
+                    <label class="filter-label">角度类型筛选</label>
+                    <select class="filter-select" id="angleFilter">
+                        <option value="all">全部角度</option>
+                        <option value="corresponding">同位角</option>
+                        <option value="alternate">内错角</option>
+                        <option value="consecutive">同旁内角</option>
+                        <option value="vertical">对顶角</option>
+                        <option value="adjacent">邻补角</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-panel">
+                <div class="table-header">
+                    <h2>角度度数表</h2>
+                    <div class="hide-angles-container">
+                        <label class="hide-angles-label">
+                            <input type="checkbox" id="hideAnglesToggle">
+                            隐藏具体度数
+                        </label>
+                    </div>
+                </div>
+                <table class="angle-table" id="angleTable">
+                    <thead>
+                        <tr>
+                            <th>角</th>
+                            <th>度数</th>
+                            <th>角</th>
+                            <th>度数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 内容会通过JavaScript动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="instructions">
+                <h3>操作说明</h3>
+                <ul>
+                    <li><strong>关闭平行模式</strong>: 可以自由拖拽所有线条</li>
+                    <li><strong>开启平行模式</strong>: 线a和线b保持平行，截线c可以自由倾斜</li>
+                    <li>直接点击并拖拽线条上的圆点进行移动</li>
+                    <li>角度值会根据线条位置实时计算更新</li>
+                </ul>
+                
+                <div class="angle-types">
+                    <span class="angle-tag">同位角</span>
+                    <span class="angle-tag">内错角</span>
+                    <span class="angle-tag">同旁内角</span>
+                    <span class="angle-tag">对顶角</span>
+                    <span class="angle-tag">邻补角</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>设计用于教室白板演示 | 平行线截线形成的三线八角关系 | 角度实时计算</p>
+    </div>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 获取角度显示元素
+        const angleElements = {
+            1: null, 2: null, 3: null, 4: null,
+            5: null, 6: null, 7: null, 8: null
+        };
+        
+        // 获取平行开关和角度筛选器
+        const parallelToggle = document.getElementById('parallelToggle');
+        const angleFilter = document.getElementById('angleFilter');
+        const angleTable = document.getElementById('angleTable');
+        const hideAnglesToggle = document.getElementById('hideAnglesToggle');
+        
+        // 定义线条的初始位置
+        let lines = {
+            a: {x1: 100, y1: 150, x2: 700, y2: 150, label: 'a'}, // 平行线a
+            b: {x1: 100, y1: 350, x2: 700, y2: 350, label: 'b'}, // 平行线b
+            c: {x1: 400, y1: 50, x2: 400, y2: 450, label: 'c'}   // 截线c
+        };
+        
+        // 定义角度值
+        let angles = {1: 120, 2: 60, 3: 60, 4: 120, 5: 120, 6: 60, 7: 60, 8: 120};
+        
+        // 定义交点
+        let intersections = {
+            a_c: {x: 0, y: 0},
+            b_c: {x: 0, y: 0}
+        };
+        
+        // 计算两条直线的交点
+        function calculateIntersection(line1, line2) {
+            const x1 = line1.x1, y1 = line1.y1;
+            const x2 = line1.x2, y2 = line1.y2;
+            const x3 = line2.x1, y3 = line2.y1;
+            const x4 = line2.x2, y4 = line2.y2;
+            
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            
+            // 如果分母为0，说明两条直线平行或重合
+            if (Math.abs(denom) < 0.001) {
+                return null;
+            }
+            
+            const px = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / denom;
+            const py = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / denom;
+            
+            return {x: px, y: py};
+        }
+        
+        // 计算两个向量之间的角度（0-180度）
+        function calculateVectorAngle(line1, line2, intersection) {
+            // 获取向量
+            const v1x = line1.x2 - line1.x1;
+            const v1y = line1.y2 - line1.y1;
+            
+            // 获取从交点到线上某点的向量
+            const v2x = line2.x2 - line2.x1;
+            const v2y = line2.y2 - line2.y1;
+            
+            // 计算点积
+            const dot = v1x * v2x + v1y * v2y;
+            
+            // 计算模长
+            const mod1 = Math.sqrt(v1x * v1x + v1y * v1y);
+            const mod2 = Math.sqrt(v2x * v2x + v2y * v2y);
+            
+            // 计算夹角余弦值
+            let cosAngle = dot / (mod1 * mod2);
+            
+            // 处理浮点误差
+            cosAngle = Math.max(-1, Math.min(1, cosAngle));
+            
+            // 计算角度（弧度）
+            const angleRad = Math.acos(cosAngle);
+            
+            // 转换为角度
+            let angleDeg = Math.round(angleRad * 180 / Math.PI);
+            
+            return angleDeg;
+        }
+        
+        // 计算所有角度
+        function calculateAngles() {
+            // 获取交点
+            const intersectionAC = calculateIntersection(lines.a, lines.c);
+            const intersectionBC = calculateIntersection(lines.b, lines.c);
+            
+            if (!intersectionAC || !intersectionBC) return;
+            
+            intersections.a_c = intersectionAC;
+            intersections.b_c = intersectionBC;
+            
+            const isParallel = parallelToggle.checked;
+            
+            if (isParallel) {
+                // 平行模式下
+                // 计算线a和线c的夹角
+                const angleDeg = calculateVectorAngle(lines.a, lines.c, intersectionAC);
+                
+                // 平行线性质
+                angles[1] = angleDeg;
+                angles[4] = angleDeg; // ∠4与∠1对顶角相等
+                angles[5] = angleDeg; // 同位角
+                angles[8] = angleDeg; // ∠8与∠5对顶角相等
+                
+                angles[2] = 180 - angleDeg;
+                angles[3] = 180 - angleDeg; // ∠3与∠2对顶角相等
+                angles[6] = 180 - angleDeg; // 同位角
+                angles[7] = 180 - angleDeg; // ∠7与∠6对顶角相等
+            } else {
+                // 非平行模式下，分别计算实际角度
+                // 上交点的四个角
+                const angleAC = calculateVectorAngle(lines.a, lines.c, intersectionAC);
+                
+                // 简单计算：角1和角2互补
+                angles[1] = Math.round(angleAC);
+                angles[2] = 180 - angles[1];
+                
+                // 对顶角
+                angles[3] = angles[2]; // ∠3 = ∠2
+                angles[4] = angles[1]; // ∠4 = ∠1
+                
+                // 下交点的四个角
+                const angleBC = calculateVectorAngle(lines.b, lines.c, intersectionBC);
+                
+                angles[5] = Math.round(angleBC);
+                angles[6] = 180 - angles[5];
+                
+                // 对顶角
+                angles[7] = angles[6]; // ∠7 = ∠6
+                angles[8] = angles[5]; // ∠8 = ∠5
+            }
+            
+            // 更新角度显示
+            updateAngleDisplay();
+            
+            // 根据当前筛选条件刷新表格
+            const filterValue = angleFilter.value;
+            angleFilter.dispatchEvent(new Event('change'));
+        }
+        
+        // 更新角度元素的引用
+        function updateAngleElementsRef() {
+            for (let i = 1; i <= 8; i++) {
+                const element = document.getElementById(`angle${i}`);
+                if (element) {
+                    angleElements[i] = element;
+                }
+            }
+        }
+        
+        // 更新角度显示
+        function updateAngleDisplay() {
+            const hideAngles = hideAnglesToggle.checked;
+            
+            for (let i = 1; i <= 8; i++) {
+                const element = document.getElementById(`angle${i}`);
+                if (element) {
+                    if (hideAngles) {
+                        element.textContent = '*°';
+                        element.classList.add('angle-hidden');
+                    } else {
+                        element.textContent = `${angles[i]}°`;
+                        element.classList.remove('angle-hidden');
+                    }
+                }
+            }
+        }
+        
+        // 创建生成表格行的通用函数
+        function createTableRow(angle1, angle2) {
+            const hideAngles = hideAnglesToggle.checked;
+            const angle1Value = hideAngles ? '*°' : `${angles[angle1]}°`;
+            const angle2Value = hideAngles ? '*°' : `${angles[angle2]}°`;
+            const angle1Class = hideAngles ? 'angle-hidden' : '';
+            const angle2Class = hideAngles ? 'angle-hidden' : '';
+            
+            return `
+                <tr>
+                    <td>∠${angle1}</td>
+                    <td id="angle${angle1}" class="${angle1Class}">${angle1Value}</td>
+                    <td>∠${angle2}</td>
+                    <td id="angle${angle2}" class="${angle2Class}">${angle2Value}</td>
+                </tr>
+            `;
+        }
+        
+        // 角度筛选功能 - 动态显示不同的角度组合
+        angleFilter.addEventListener('change', () => {
+            const filterValue = angleFilter.value;
+            const tbody = angleTable.querySelector('tbody');
+            
+            let tableHTML = '';
+            
+            if (filterValue === 'all') {
+                tableHTML = createTableRow(1, 5) +
+                           createTableRow(2, 6) +
+                           createTableRow(3, 7) +
+                           createTableRow(4, 8);
+            } else if (filterValue === 'corresponding') {
+                tableHTML = createTableRow(1, 5) +
+                           createTableRow(2, 6) +
+                           createTableRow(3, 7) +
+                           createTableRow(4, 8);
+            } else if (filterValue === 'alternate') {
+                tableHTML = createTableRow(4, 5) +
+                           createTableRow(3, 6);
+            } else if (filterValue === 'consecutive') {
+                tableHTML = createTableRow(3, 5) +
+                           createTableRow(4, 6);
+            } else if (filterValue === 'vertical') {
+                tableHTML = createTableRow(1, 4) +
+                           createTableRow(2, 3) +
+                           createTableRow(5, 8) +
+                           createTableRow(6, 7);
+            } else if (filterValue === 'adjacent') {
+                tableHTML = createTableRow(1, 3) +
+                           createTableRow(1, 2) +
+                           createTableRow(2, 4) +
+                           createTableRow(3, 4) +
+                           createTableRow(5, 6) +
+                           createTableRow(5, 7) +
+                           createTableRow(6, 8) +
+                           createTableRow(7, 8);
+            }
+            
+            tbody.innerHTML = tableHTML;
+            
+            // 重新获取角度元素引用
+            updateAngleElementsRef();
+        });
+        
+        // 隐藏角度复选框的点击事件
+        hideAnglesToggle.addEventListener('change', () => {
+            // 根据当前筛选条件刷新表格
+            angleFilter.dispatchEvent(new Event('change'));
+        });
+        
+        // 绘制所有元素
+        function draw() {
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制线条 - 线宽改为5
+            drawLine(lines.a, '#4a9cff', 5);
+            drawLine(lines.b, '#4a9cff', 5);
+            drawLine(lines.c, '#ff6b6b', 5);
+            
+            // 计算角度
+            calculateAngles();
+            
+            // 绘制交点
+            drawIntersections();
+            
+            // 绘制角度标记
+            drawAngleMarkers();
+            
+            // 绘制标签
+            drawLabels();
+            
+            // 绘制拖拽点
+            drawDragPoints();
+        }
+        
+        // 绘制线条
+        function drawLine(line, color, width) {
+            ctx.beginPath();
+            ctx.moveTo(line.x1, line.y1);
+            ctx.lineTo(line.x2, line.y2);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+        
+        // 绘制交点
+        function drawIntersections() {
+            // 绘制线a和线c的交点
+            drawCircle(intersections.a_c.x, intersections.a_c.y, 6, '#ff9f43');
+            
+            // 绘制线b和线c的交点
+            drawCircle(intersections.b_c.x, intersections.b_c.y, 6, '#ff9f43');
+        }
+        
+        // 改进的角度标记绘制方法
+        function drawAngleMarkers() {
+            // 清除之前的绘制
+            ctx.save();
+            
+            // 设置角度标记样式
+            ctx.strokeStyle = '#36b368';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 计算线条角度
+            const angleA = Math.atan2(lines.a.y2 - lines.a.y1, lines.a.x2 - lines.a.x1);
+            const angleB = Math.atan2(lines.b.y2 - lines.b.y1, lines.b.x2 - lines.b.x1);
+            const angleC = Math.atan2(lines.c.y2 - lines.c.y1, lines.c.x2 - lines.c.x1);
+            
+            // 上交点 (线a和线c)
+            const topInt = intersections.a_c;
+            
+            // ∠1: 线a左侧和线c上方之间的角度 (左上)
+            drawAngleArcWithQuadrant(1, topInt, angleA + Math.PI, angleC, 'top-left');
+            
+            // ∠2: 线a右侧和线c上方之间的角度 (右上)
+            drawAngleArcWithQuadrant(2, topInt, angleA, angleC, 'top-right');
+            
+            // ∠3: 线a左侧和线c下方之间的角度 (左下)
+            drawAngleArcWithQuadrant(3, topInt, angleA + Math.PI, angleC + Math.PI, 'bottom-left');
+            
+            // ∠4: 线a右侧和线c下方之间的角度 (右下)
+            drawAngleArcWithQuadrant(4, topInt, angleA, angleC + Math.PI, 'bottom-right');
+            
+            // 下交点 (线b和线c)
+            const bottomInt = intersections.b_c;
+            
+            // ∠5: 线b左侧和线c上方之间的角度 (左上)
+            drawAngleArcWithQuadrant(5, bottomInt, angleB + Math.PI, angleC, 'top-left');
+            
+            // ∠6: 线b右侧和线c上方之间的角度 (右上)
+            drawAngleArcWithQuadrant(6, bottomInt, angleB, angleC, 'top-right');
+            
+            // ∠7: 线b左侧和线c下方之间的角度 (左下)
+            drawAngleArcWithQuadrant(7, bottomInt, angleB + Math.PI, angleC + Math.PI, 'bottom-left');
+            
+            // ∠8: 线b右侧和线c下方之间的角度 (右下)
+            drawAngleArcWithQuadrant(8, bottomInt, angleB, angleC + Math.PI, 'bottom-right');
+            
+            ctx.restore();
+        }
+        
+        // 根据象限绘制角度弧线和标签
+        function drawAngleArcWithQuadrant(angleNum, intersection, startAngle, endAngle, quadrant) {
+            // 确保角度在合理范围内
+            startAngle = normalizeAngle(startAngle);
+            endAngle = normalizeAngle(endAngle);
+            
+            // 确保startAngle < endAngle
+            if (endAngle < startAngle) {
+                endAngle += Math.PI * 2;
+            }
+            
+            // 根据象限确定标签偏移方向
+            let offsetX = 0, offsetY = 0;
+            const baseOffset = 25; // 基础偏移距离
+            
+            switch(quadrant) {
+                case 'top-left':
+                    offsetX = -baseOffset;
+                    offsetY = -baseOffset;
+                    break;
+                case 'top-right':
+                    offsetX = baseOffset;
+                    offsetY = -baseOffset;
+                    break;
+                case 'bottom-left':
+                    offsetX = -baseOffset;
+                    offsetY = baseOffset;
+                    break;
+                case 'bottom-right':
+                    offsetX = baseOffset;
+                    offsetY = baseOffset;
+                    break;
+            }
+            
+            // 绘制圆弧
+            ctx.beginPath();
+            ctx.arc(intersection.x, intersection.y, 25, startAngle, endAngle);
+            ctx.stroke();
+            
+            // 计算标签位置 - 使用偏移量而不是角度计算
+            let labelX = intersection.x + offsetX;
+            let labelY = intersection.y + offsetY;
+            
+            // 如果标签位置太靠近交点，向外推一点
+            const distFromCenter = Math.sqrt(offsetX*offsetX + offsetY*offsetY);
+            if (distFromCenter < 20) {
+                labelX = intersection.x + (offsetX/distFromCenter) * 30;
+                labelY = intersection.y + (offsetY/distFromCenter) * 30;
+            }
+            
+            // 确保标签不会超出画布边界
+            labelX = Math.max(25, Math.min(canvas.width - 25, labelX));
+            labelY = Math.max(25, Math.min(canvas.height - 25, labelY));
+            
+            // 只绘制角度标签（如∠1），不绘制度数
+            ctx.fillText(`∠${angleNum}`, labelX, labelY);
+        }
+        
+        // 标准化角度到[0, 2π)范围
+        function normalizeAngle(angle) {
+            while (angle < 0) angle += Math.PI * 2;
+            while (angle >= Math.PI * 2) angle -= Math.PI * 2;
+            return angle;
+        }
+        
+        // 绘制圆
+        function drawCircle(x, y, radius, color) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+        
+        // 绘制线条标签
+        function drawLabels() {
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // 线a标签
+            const aLabelX = lines.a.x1 - 30;
+            const aLabelY = lines.a.y1;
+            ctx.fillText('a', aLabelX, aLabelY);
+            
+            // 线b标签
+            const bLabelX = lines.b.x1 - 30;
+            const bLabelY = lines.b.y1;
+            ctx.fillText('b', bLabelX, bLabelY);
+            
+            // 线c标签
+            const cLabelX = lines.c.x2 + 20;
+            const cLabelY = lines.c.y2 - 20;
+            ctx.fillText('c', cLabelX, cLabelY);
+        }
+        
+        // 绘制拖拽点
+        function drawDragPoints() {
+            // 为每条线绘制两个拖拽点
+            for (const lineKey in lines) {
+                const line = lines[lineKey];
+                
+                // 起点
+                drawCircle(line.x1, line.y1, 8, '#4a9cff');
+                
+                // 终点
+                drawCircle(line.x2, line.y2, 8, '#4a9cff');
+            }
+        }
+        
+        // 拖拽交互
+        let isDragging = false;
+        let draggedLine = null;
+        let draggedPoint = null; // 'start' 或 'end'
+        
+        // 获取鼠标位置（考虑Canvas偏移）
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+        
+        // 检查是否点击了拖拽点
+        function checkDragPoint(x, y) {
+            for (const lineKey in lines) {
+                const line = lines[lineKey];
+                
+                // 检查起点
+                if (distance(x, y, line.x1, line.y1) < 15) {
+                    return { line: lineKey, point: 'start' };
+                }
+                
+                // 检查终点
+                if (distance(x, y, line.x2, line.y2) < 15) {
+                    return { line: lineKey, point: 'end' };
+                }
+            }
+            
+            return null;
+        }
+        
+        // 计算两点之间的距离
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        }
+        
+        // 处理鼠标按下事件
+        canvas.addEventListener('mousedown', (e) => {
+            const mousePos = getMousePos(e);
+            const dragInfo = checkDragPoint(mousePos.x, mousePos.y);
+            
+            if (dragInfo) {
+                isDragging = true;
+                draggedLine = dragInfo.line;
+                draggedPoint = dragInfo.point;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+        
+        // 处理鼠标移动事件
+        canvas.addEventListener('mousemove', (e) => {
+            const mousePos = getMousePos(e);
+            
+            // 更改光标样式
+            if (checkDragPoint(mousePos.x, mousePos.y)) {
+                canvas.style.cursor = 'grab';
+            } else {
+                canvas.style.cursor = 'default';
+            }
+            
+            // 如果正在拖拽
+            if (isDragging && draggedLine) {
+                const isParallel = parallelToggle.checked;
+                const line = lines[draggedLine];
+                
+                if (isParallel) {
+                    // 平行模式下
+                    if (draggedLine === 'a') {
+                        // 拖动线a时，线b跟随保持平行
+                        if (draggedPoint === 'start') {
+                            const dx = mousePos.x - line.x1;
+                            const dy = mousePos.y - line.y1;
+                            
+                            line.x1 = mousePos.x;
+                            line.y1 = mousePos.y;
+                            line.x2 += dx;
+                            line.y2 += dy;
+                            
+                            // 线b跟随移动
+                            lines.b.x1 += dx;
+                            lines.b.y1 += dy;
+                            lines.b.x2 += dx;
+                            lines.b.y2 += dy;
+                        } else {
+                            // 拖动终点，调整线a的方向，线b保持平行
+                            const oldX = line.x2;
+                            const oldY = line.y2;
+                            
+                            line.x2 = mousePos.x;
+                            line.y2 = mousePos.y;
+                            
+                            // 计算线a的斜率
+                            const deltaX = line.x2 - line.x1;
+                            const deltaY = line.y2 - line.y1;
+                            
+                            if (Math.abs(deltaX) > 0.001) {
+                                const slope = deltaY / deltaX;
+                                
+                                // 调整线b的终点以保持平行
+                                const lengthB = Math.sqrt(
+                                    (lines.b.x2 - lines.b.x1)**2 + 
+                                    (lines.b.y2 - lines.b.y1)**2
+                                );
+                                
+                                const dxB = Math.sqrt(lengthB**2 / (1 + slope*slope));
+                                lines.b.x2 = lines.b.x1 + dxB;
+                                lines.b.y2 = lines.b.y1 + slope * dxB;
+                            }
+                        }
+                    } else if (draggedLine === 'b') {
+                        // 拖动线b，线a保持不变，只调整线b的位置
+                        if (draggedPoint === 'start') {
+                            line.x1 = mousePos.x;
+                            line.y1 = mousePos.y;
+                        } else {
+                            line.x2 = mousePos.x;
+                            line.y2 = mousePos.y;
+                        }
+                    } else if (draggedLine === 'c') {
+                        // 截线c可以自由倾斜，没有任何限制
+                        if (draggedPoint === 'start') {
+                            line.x1 = mousePos.x;
+                            line.y1 = mousePos.y;
+                        } else {
+                            line.x2 = mousePos.x;
+                            line.y2 = mousePos.y;
+                        }
+                    }
+                } else {
+                    // 非平行模式下自由移动所有线条
+                    if (draggedPoint === 'start') {
+                        line.x1 = mousePos.x;
+                        line.y1 = mousePos.y;
+                    } else {
+                        line.x2 = mousePos.x;
+                        line.y2 = mousePos.y;
+                    }
+                }
+                
+                // 重新绘制
+                draw();
+            }
+        });
+        
+        // 处理鼠标抬起事件
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            draggedLine = null;
+            draggedPoint = null;
+            canvas.style.cursor = 'default';
+        });
+        
+        // 处理鼠标离开事件
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            draggedLine = null;
+            draggedPoint = null;
+            canvas.style.cursor = 'default';
+        });
+        
+        // 触摸事件支持（用于白板触摸屏）
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        // 切换平行模式时重新绘制
+        parallelToggle.addEventListener('change', () => {
+            if (parallelToggle.checked) {
+                // 开启平行模式：保持线a和线b平行（以线a为基准）
+                
+                // 计算线a的方向向量
+                const dxA = lines.a.x2 - lines.a.x1;
+                const dyA = lines.a.y2 - lines.a.y1;
+                
+                // 计算线a的长度
+                const lengthA = Math.sqrt(dxA * dxA + dyA * dyA);
+                
+                // 计算线b的长度
+                const dxB = lines.b.x2 - lines.b.x1;
+                const dyB = lines.b.y2 - lines.b.y1;
+                const lengthB = Math.sqrt(dxB * dxB + dyB * dyB);
+                
+                // 保持线b的中点位置，但方向与线a平行
+                const midXB = (lines.b.x1 + lines.b.x2) / 2;
+                const midYB = (lines.b.y1 + lines.b.y2) / 2;
+                
+                // 设置线b与线a平行，保持线b原来的长度
+                if (lengthA > 0) {
+                    // 线a的单位方向向量
+                    const unitXA = dxA / lengthA;
+                    const unitYA = dyA / lengthA;
+                    
+                    // 设置线b的端点，保持原来的长度，方向与线a一致
+                    lines.b.x1 = midXB - (lengthB / 2) * unitXA;
+                    lines.b.y1 = midYB - (lengthB / 2) * unitYA;
+                    lines.b.x2 = midXB + (lengthB / 2) * unitXA;
+                    lines.b.y2 = midYB + (lengthB / 2) * unitYA;
+                }
+            }
+            
+            draw();
+        });
+        
+        // 在页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化绘制
+            draw();
+            
+            // 初始化表格为"全部角度"模式
+            angleFilter.value = 'all';
+            angleFilter.dispatchEvent(new Event('change'));
+        });
+    </script>
+</body>
+</html>
